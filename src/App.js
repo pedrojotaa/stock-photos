@@ -11,16 +11,16 @@ function App() {
   const [photos, setPhotos] = useState([]);
   const [page, setPage] = useState([]);
   const [query, setQuery] = useState([]);
-  
 
   const fetchImages = async () => {
     setLoadin(true);
-    let url
+    let url;
     url = `${mainUrl}${clientId}`;
     try {
       const response = await fetch(url);
       const data = await response.json();
-      console.log(data);
+      setPhotos(data);
+      setLoadin(false);
     } catch (error) {
       setLoadin(false);
       console.log(error);
@@ -29,7 +29,33 @@ function App() {
   useEffect(() => {
     fetchImages();
   }, []);
-  return <div>Stock</div>;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("hi");
+  };
+
+  return (
+    <main>
+      <section className="search">
+        <form className="search-form">
+          <input type="text" placeholder="search" className="form-input" />
+          <button type="submit" className="submit-btn" onClick={handleSubmit}>
+            <FaSearch />
+          </button>
+        </form>
+      </section>
+      <section className="photos">
+        <div className="photos-center">
+          {photos.map((image, index) => {
+            console.log(image);
+            return <Photo key={index} {...image} />;
+          })}
+        </div>
+        {loading && <h2 className="loading">Loading...</h2>}
+      </section>
+    </main>
+  );
 }
 
 export default App;
