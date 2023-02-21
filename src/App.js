@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FaSearch } from "react-icons/fa";
 import Photo from "./Photo";
 
@@ -9,37 +9,91 @@ const searchUrl = `https://api.unsplash.com/search/photos/;`;
 function App() {
   const [loading, setLoadin] = useState(false);
   const [photos, setPhotos] = useState([]);
-  const [page, setPage] = useState([]);
-  const [query, setQuery] = useState([]);
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState("");
+  const mounted = useRef(false);
+  const [newImages, setNewImages] = useState(false);
 
   const fetchImages = async () => {
     setLoadin(true);
     let url;
-    url = `${mainUrl}${clientId}`;
+    const urlPage = `&page=${page}`;
+    const urlQuery = `&query=${query}`;
+
+    if (query) {
+      url = `${searchUrl}${clientId}${urlPage}${urlQuery}`;
+    } else {
+      url = `${mainUrl}${clientId}${urlPage}`;
+    }
+
     try {
       const response = await fetch(url);
       const data = await response.json();
-      setPhotos(data);
+      setPhotos((oldPhotos) => {
+        if (query && page === 1) {
+          return data.results;
+        } else if (query) {
+          return [...oldPhotos, ...data.results];
+        } else {
+          return [...oldPhotos, ...data];
+        }
+      });
+      setNewImages(false);
       setLoadin(false);
     } catch (error) {
+      setNewImages(false);
       setLoadin(false);
       console.log(error);
     }
   };
+
   useEffect(() => {
     fetchImages();
+    // eslint-disable-next-line
+  }, [page]);
+
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    if (!newImages) return;
+    if (loading) return;
+    setPage((oldPage) => oldPage + 1);
+    // eslint-disable-next-line
+  }, [newImages]);
+
+  const event = () => {
+    if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 2) {
+      setNewImages(true);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", event);
+    return () => window.removeEventListener("scroll", event);
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("hi");
+    if (!query) return;
+    if (page === 1) {
+      fetchImages();
+    }
+    setPage(1);
   };
 
   return (
     <main>
       <section className="search">
         <form className="search-form">
-          <input type="text" placeholder="search" className="form-input" />
+          <input
+            type="text"
+            placeholder="search"
+            className="form-input"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
           <button type="submit" className="submit-btn" onClick={handleSubmit}>
             <FaSearch />
           </button>
@@ -48,8 +102,7 @@ function App() {
       <section className="photos">
         <div className="photos-center">
           {photos.map((image, index) => {
-            console.log(image);
-            return <Photo key={index} {...image} />;
+            return <Photo key={image.id} {...image} />;
           })}
         </div>
         {loading && <h2 className="loading">Loading...</h2>}
