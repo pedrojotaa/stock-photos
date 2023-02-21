@@ -4,10 +4,10 @@ import Photo from "./Photo";
 
 const clientId = `?client_id=${process.env.REACT_APP_ACCESS_KEY}`;
 const mainUrl = `https://api.unsplash.com/photos/`;
-const searchUrl = `https://api.unsplash.com/search/photos/;`;
+const searchUrl = `https://api.unsplash.com/search/photos/`;
 
 function App() {
-  const [loading, setLoadin] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
@@ -15,7 +15,7 @@ function App() {
   const [newImages, setNewImages] = useState(false);
 
   const fetchImages = async () => {
-    setLoadin(true);
+    setLoading(true);
     let url;
     const urlPage = `&page=${page}`;
     const urlQuery = `&query=${query}`;
@@ -39,10 +39,10 @@ function App() {
         }
       });
       setNewImages(false);
-      setLoadin(false);
+      setLoading(false);
     } catch (error) {
       setNewImages(false);
-      setLoadin(false);
+      setLoading(false);
       console.log(error);
     }
   };
